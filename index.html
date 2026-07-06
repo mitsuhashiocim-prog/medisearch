@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediSearch | 医学参考書検索</title>
+<style>
+:root{--navy:#0f2744;--teal:#1a7a6e;--teal-lt:#e8f5f3;--red:#c0392b;--gray:#f5f6fa;--border:#dde3ec;--text:#1a2233;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Meiryo","Yu Gothic",sans-serif;background:var(--gray);color:var(--text);min-height:100vh}
+header{background:var(--navy);padding:13px 20px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+header h1{color:#fff;font-size:1.1rem;font-weight:bold}
+.badge{color:#4dd9c8;font-size:.75rem;background:rgba(77,217,200,.15);padding:2px 8px;border-radius:20px}
+.search-area{background:#fff;padding:16px 20px;border-bottom:1px solid var(--border)}
+.search-row{display:flex;gap:8px;max-width:800px;margin:0 auto}
+#q{flex:1;padding:11px 14px;border:2px solid var(--border);border-radius:var(--r);font-size:1rem;font-family:inherit;outline:none;transition:border-color .2s}
+#q:focus{border-color:var(--teal)}
+#btn{padding:11px 22px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-size:1rem;font-weight:bold;cursor:pointer;white-space:nowrap}
+#btn:hover{background:#155f55}
+#btn:disabled{background:#aaa;cursor:not-allowed}
+.filters{display:flex;gap:8px;max-width:800px;margin:10px auto 0;flex-wrap:wrap;align-items:center;font-size:.82rem;color:#6b7a9a}
+select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:.82rem;font-family:inherit;background:#fff}
+#status{text-align:center;padding:50px 20px;color:#aaa;font-size:.9rem}
+#results{padding:16px;max-width:900px;margin:0 auto}
+.result-info{text-align:center;padding:10px;font-size:.85rem;color:#6b7a9a;margin-bottom:8px}
+.result-info strong{color:var(--teal)}
+.card{background:#fff;border-radius:var(--r);margin-bottom:20px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card-head{background:var(--navy);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.card-title{color:#fff;font-weight:bold;font-size:.9rem}
+.card-chips{display:flex;align-items:center;gap:6px}
+.chip-page{color:#4dd9c8;font-size:.78rem;background:rgba(77,217,200,.15);padding:2px 10px;border-radius:20px}
+.chip-score{color:rgba(255,255,255,.4);font-size:.72rem}
+.card-snip{padding:8px 16px;background:var(--teal-lt);font-size:.8rem;color:#444;line-height:1.6}
+.card-snip mark{background:#ffe066;padding:0 2px;border-radius:2px}
+.card-img{padding:12px;background:#f8f9fa;min-height:60px;display:flex;align-items:center;justify-content:center}
+.card-img img{width:100%;border-radius:6px;cursor:zoom-in;display:block}
+.card-img img:hover{opacity:.92}
+.no-img{color:var(--red);font-size:.82rem;padding:8px}
+.card-foot{display:flex;gap:8px;padding:8px 12px;border-top:1px solid var(--border);justify-content:flex-end}
+.btn-open{padding:5px 14px;border:1px solid var(--teal);border-radius:8px;font-size:.8rem;background:#fff;color:var(--teal);text-decoration:none}
+.btn-open:hover{background:var(--teal-lt)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+#lb.open{display:flex}
+#lb img{max-width:100%;max-height:90vh;border-radius:8px}
+#lb-close{position:absolute;top:16px;right:20px;color:#fff;font-size:2rem;cursor:pointer;background:none;border:none}
+#lb-cap{color:rgba(255,255,255,.6);margin-top:12px;font-size:.85rem}
+@media(max-width:600px){.search-row{flex-direction:column}#btn{width:100%}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 MediSearch</h1>
+  <span class="badge">医学参考書 16冊</span>
+</header>
+
+<div class="search-area">
+  <div class="search-row">
+    <input id="q" type="text" placeholder="例: 半月板損傷　糖尿病 切断　感覚検査" autocomplete="off">
+    <button id="btn" onclick="doSearch()">🔍 検索</button>
+  </div>
+  <div class="filters">
+    <span>巻を絞る:</span>
+    <select id="vol">
+      <option value="全巻">全巻</option>
+      <option value="Vol1_消化器">Vol.1 消化器</option>
+      <option value="Vol2_循環器">Vol.2 循環器</option>
+      <option value="Vol3_糖尿病代謝内分泌">Vol.3 糖尿病・代謝・内分泌</option>
+      <option value="Vol4_呼吸器">Vol.4 呼吸器</option>
+      <option value="Vol5_血液">Vol.5 血液</option>
+      <option value="Vol6_免疫膠原病感染症">Vol.6 免疫・膠原病・感染症</option>
+      <option value="Vol7_脳神経">Vol.7 脳・神経</option>
+      <option value="Vol8_腎泌尿器">Vol.8 腎・泌尿器</option>
+      <option value="Vol9_婦人科乳腺外科">Vol.9 婦人科・乳腺外科</option>
+      <option value="Vol10_産科">Vol.10 産科</option>
+      <option value="Vol11_整形">Vol.11 整形外科</option>
+      <option value="Vol12_眼科">Vol.12 眼科</option>
+      <option value="Vol13_耳鼻咽喉科">Vol.13 耳鼻咽喉科</option>
+      <option value="Vol14_皮膚科">Vol.14 皮膚科</option>
+      <option value="ビジュアルノート">ビジュアルノート最強Ver.</option>
+      <option value="診察と手技">診察と手技がみえる</option>
+    </select>
+    <span>表示数:</span>
+    <select id="n">
+      <option value="2">2件</option>
+      <option value="3" selected>3件</option>
+      <option value="5">5件</option>
+    </select>
+  </div>
+</div>
+
+<div id="status">
+  <div style="font-size:2.8rem;margin-bottom:12px">🔍</div>
+  キーワードを入力して検索してください<br>
+  <span style="font-size:.78rem;color:#bbb">スペース区切りでAND検索（例: 糖尿病 切断）</span>
+</div>
+<div id="results"></div>
+
+<div id="lb">
+  <button id="lb-close" onclick="closeLb()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-cap"></div>
+</div>
+
+<script>
+// 各巻のGoogle Drive FileID（GASの検索結果から取得済み）
+const FILE_IDS = {
+  "Vol1_消化器":         "1EBH7abH77vTf06hhpasyF3b-XBnHR87S",
+  "Vol2_循環器":         "1XCX0zm6Sc_oVQNZMDesIs2btNzXB8_2M",
+  "Vol3_糖尿病代謝内分泌": "1gaiG0D3hhUS3MkCmmOu5DJegLz0HKDPg",
+  "Vol4_呼吸器":         "150W5HZpQCR_vamKs408GQt9tdA-87H4t",
+  "Vol5_血液":           "1jcRiYqw5kr8loSuBI0VHGpBwl9uN3dXU",
+  "Vol6_免疫膠原病感染症": "1stjQ6OaLxxEHlfD6e0kdrWgavXHalRps",
+  "Vol7_脳神経":         "1SCukUjZe20OqcIt7jJ_EwcInkraEsbRy",
+  "Vol8_腎泌尿器":       "1Uyjlh9VA7_YZuV3dGMex3kkZ0RKsLavb",
+  "Vol9_婦人科乳腺外科": "1wQ-buIoGvr73wLIE9PDlLIwEhDaojZLP",
+  "Vol10_産科":          "1Ep8oXs2qV4fLqtur0CnY0DXE55DnRC5E",
+  "Vol11_整形":          "17rRvulH2KRt6yHSUgvPYFzTGXb3vmJ9S",
+  "Vol12_眼科":          "1u3sgIlqb227YK66fV8g2mTcm0FyU7XVo",
+  "Vol13_耳鼻咽喉科":   "1n-5Kp3_xhoRBNRTbCsFMMAUXw6DAgVSJ",
+  "Vol14_皮膚科":        "1Gn9psuF5SYJnkVNBSCJ8M0TQe9SUFMNY",
+  "ビジュアルノート":    "12ry05O0-nJomflwQ9jV2sW8HwI_9z7KJ",
+  "診察と手技":          "1m5YDRGhSQF6NYzPKE_t-AqkEv9rZhWlJ"
+};
+
+let INDEX = null;
+
+async function loadIndex() {
+  if (INDEX) return INDEX;
+  const res = await fetch('search_index.json');
+  INDEX = await res.json();
+  return INDEX;
+}
+
+function escape_re(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function searchBooks(index, keywords, targetVol, maxPerBook) {
+  const all = [];
+  for (const book of index) {
+    if (targetVol !== "全巻" && book.id !== targetVol) continue;
+    const hits = [];
+    for (const pg of book.pages) {
+      const text = pg.t;
+      const norm = text.replace(/\s+/g, "").toLowerCase();
+      let score = 0, snippet = "";
+      for (const kw of keywords) {
+        const nkw = kw.replace(/\s+/g, "").toLowerCase();
+        try {
+          score += ((text.match(new RegExp(escape_re(kw), "g")) || []).length) * 3;
+          score += ((norm.match(new RegExp(escape_re(nkw), "g")) || []).length) * 2;
+          if (kw.length >= 3) {
+            const h = Math.floor(kw.length / 2);
+            score += (text.match(new RegExp(escape_re(kw.slice(0,h)), "g")) || []).length;
+            score += (text.match(new RegExp(escape_re(kw.slice(h)), "g")) || []).length;
+          }
+          if (score > 0 && !snippet) {
+            const i = text.indexOf(kw);
+            if (i >= 0) snippet = text.slice(Math.max(0,i-20), i+80).replace(/\n/g," ");
+          }
+        } catch(e) {}
+      }
+      if (score > 0) hits.push({ page: pg.p, score, snippet });
+    }
+    hits.sort((a,b) => b.score - a.score);
+    for (const h of hits.slice(0, maxPerBook)) {
+      all.push({ bookId: book.id, bookName: book.name, ...h });
+    }
+  }
+  all.sort((a,b) => b.score - a.score);
+  return all;
+}
+
+async function doSearch() {
+  const q = document.getElementById("q").value.trim();
+  const vol = document.getElementById("vol").value;
+  const n = parseInt(document.getElementById("n").value);
+  if (!q) return;
+
+  const btn = document.getElementById("btn");
+  btn.disabled = true; btn.textContent = "検索中…";
+  document.getElementById("status").innerHTML = '<div class="spinner"></div>';
+  document.getElementById("results").innerHTML = "";
+
+  try {
+    const index = await loadIndex();
+    const keywords = q.split(/\s+/);
+    const all = searchBooks(index, keywords, vol, n);
+
+    if (!all.length) {
+      document.getElementById("status").innerHTML =
+        '<div style="font-size:2.4rem">📭</div>「' + keywords.join(" ") + '」は見つかりませんでした<br><span style="font-size:.78rem;color:#bbb">キーワードを短くして試してください</span>';
+      return;
+    }
+
+    const seen = {};
+    const selected = all.filter(r => {
+      const c = seen[r.bookId] || 0;
+      if (c < n) { seen[r.bookId] = c+1; return true; }
+      return false;
+    });
+
+    document.getElementById("status").innerHTML = "";
+    renderResults(selected, keywords, all.length);
+
+  } catch(e) {
+    document.getElementById("status").innerHTML = '<div style="color:var(--red)">⚠ ' + e.message + '</div>';
+  } finally {
+    btn.disabled = false; btn.textContent = "🔍 検索";
+  }
+}
+
+function renderResults(results, keywords, total) {
+  const re = document.getElementById("results");
+  let html = '<div class="result-info">「<strong>' + keywords.join(" ") + '</strong>」 '
+    + total + '件ヒット → ' + results.length + 'ページ表示</div>';
+
+  results.forEach(r => {
+    let snip = r.snippet || "";
+    keywords.forEach(kw => {
+      try { snip = snip.replace(new RegExp(escape_re(kw),"g"), "<mark>"+kw+"</mark>"); } catch(e) {}
+    });
+
+    const fid = FILE_IDS[r.bookId] || "";
+    const thumb = fid ? "https://lh3.googleusercontent.com/d/" + fid + "=w1200" : "";
+    const view  = fid ? "https://drive.google.com/file/d/" + fid + "/preview#page=" + r.page : "";
+
+    const imgHtml = fid
+      ? '<img src="' + thumb + '" alt="p.' + r.page + '" '
+        + 'onclick="openLb(\'' + thumb + '\',\'' + r.bookName.replace(/'/g,"\\'") + ' p.' + r.page + '\')" '
+        + 'onerror="this.outerHTML=\'<div class=no-img>⚠ 画像を読み込めません</div>\'">'
+      : '<div class="no-img">⚠ PDFのFileIDが未設定です</div>';
+
+    const openBtn = fid
+      ? '<a href="' + view + '" target="_blank" class="btn-open">📄 PDFで開く</a>'
+      : "";
+
+    html += '<div class="card">'
+      + '<div class="card-head">'
+      + '<span class="card-title">' + r.bookName + '</span>'
+      + '<div class="card-chips">'
+      + '<span class="chip-page">p.' + r.page + '</span>'
+      + '<span class="chip-score">スコア:' + r.score + '</span>'
+      + '</div></div>'
+      + '<div class="card-snip">…' + snip.slice(0,120) + '…</div>'
+      + '<div class="card-img">' + imgHtml + '</div>'
+      + '<div class="card-foot">' + openBtn + '</div>'
+      + '</div>';
+  });
+
+  re.innerHTML = html;
+}
+
+function openLb(src, cap) {
+  document.getElementById("lb-img").src = src;
+  document.getElementById("lb-cap").textContent = cap;
+  document.getElementById("lb").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeLb() {
+  document.getElementById("lb").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+document.getElementById("lb").addEventListener("click", e => { if (e.target === e.currentTarget) closeLb(); });
+</script>
+</body>
+</html>
