@@ -225,7 +225,7 @@ function renderResults(results, keywords, total) {
     });
 
     const fid = FILE_IDS[r.bookId] || "";
-    const thumb = fid ? "https://lh3.googleusercontent.com/d/" + fid + "=w1200" : "";
+    const thumb = fid ? "https://drive.google.com/thumbnail?id=" + fid + "&sz=w1200" : "";
     const view  = fid ? "https://drive.google.com/file/d/" + fid + "/preview#page=" + r.page : "";
 
     const imgHtml = fid
