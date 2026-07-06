@@ -107,22 +107,22 @@ select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-siz
 <script>
 // 各巻のGoogle Drive FileID（GASの検索結果から取得済み）
 const FILE_IDS = {
-  "Vol1_消化器":         "1EBH7abH77vTf06hhpasyF3b-XBnHR87S",
-  "Vol2_循環器":         "1XCX0zm6Sc_oVQNZMDesIs2btNzXB8_2M",
-  "Vol3_糖尿病代謝内分泌": "1gaiG0D3hhUS3MkCmmOu5DJegLz0HKDPg",
-  "Vol4_呼吸器":         "150W5HZpQCR_vamKs408GQt9tdA-87H4t",
-  "Vol5_血液":           "1jcRiYqw5kr8loSuBI0VHGpBwl9uN3dXU",
-  "Vol6_免疫膠原病感染症": "1stjQ6OaLxxEHlfD6e0kdrWgavXHalRps",
-  "Vol7_脳神経":         "1SCukUjZe20OqcIt7jJ_EwcInkraEsbRy",
-  "Vol8_腎泌尿器":       "1Uyjlh9VA7_YZuV3dGMex3kkZ0RKsLavb",
-  "Vol9_婦人科乳腺外科": "1wQ-buIoGvr73wLIE9PDlLIwEhDaojZLP",
-  "Vol10_産科":          "1Ep8oXs2qV4fLqtur0CnY0DXE55DnRC5E",
-  "Vol11_整形":          "17rRvulH2KRt6yHSUgvPYFzTGXb3vmJ9S",
-  "Vol12_眼科":          "1u3sgIlqb227YK66fV8g2mTcm0FyU7XVo",
-  "Vol13_耳鼻咽喉科":   "1n-5Kp3_xhoRBNRTbCsFMMAUXw6DAgVSJ",
-  "Vol14_皮膚科":        "1Gn9psuF5SYJnkVNBSCJ8M0TQe9SUFMNY",
-  "ビジュアルノート":    "12ry05O0-nJomflwQ9jV2sW8HwI_9z7KJ",
-  "診察と手技":          "1m5YDRGhSQF6NYzPKE_t-AqkEv9rZhWlJ"
+  "vol1":      "1EBH7abH77vTf06hhpasyF3b-XBnHR87S",
+  "vol2":      "1XCX0zm6Sc_oVQNZMDesIs2btNzXB8_2M",
+  "vol3":      "1gaiG0D3hhUS3MkCmmOu5DJegLz0HKDPg",
+  "vol4":      "150W5HZpQCR_vamKs408GQt9tdA-87H4t",
+  "vol5":      "1jcRiYqw5kr8loSuBI0VHGpBwl9uN3dXU",
+  "vol6":      "1stjQ6OaLxxEHlfD6e0kdrWgavXHalRps",
+  "vol7":      "1SCukUjZe20OqcIt7jJ_EwcInkraEsbRy",
+  "vol8":      "1Uyjlh9VA7_YZuV3dGMex3kkZ0RKsLavb",
+  "vol9":      "1wQ-buIoGvr73wLIE9PDlLIwEhDaojZLP",
+  "vol10":     "1Ep8oXs2qV4fLqtur0CnY0DXE55DnRC5E",
+  "vol11":     "17rRvulH2KRt6yHSUgvPYFzTGXb3vmJ9S",
+  "vol12":     "1u3sgIlqb227YK66fV8g2mTcm0FyU7XVo",
+  "vol13":     "1n-5Kp3_xhoRBNRTbCsFMMAUXw6DAgVSJ",
+  "vol14":     "1Gn9psuF5SYJnkVNBSCJ8M0TQe9SUFMNY",
+  "vn":        "12ry05O0-nJomflwQ9jV2sW8HwI_9z7KJ",
+  "shinsatsu": "1m5YDRGhSQF6NYzPKE_t-AqkEv9rZhWlJ"
 };
 
 let INDEX = null;
